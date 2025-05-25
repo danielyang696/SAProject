@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <title>酒店後台管理系統</title>
+    <style>
+        body {
+            font-family: "Microsoft JhengHei", sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+        }
+
+        header {
+            background-color: #2c3e50;
+            color: white;
+            padding: 16px;
+            text-align: center;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 20px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 16px;
+            padding: 20px;
+        }
+
+        .room-card {
+            background-color: white;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            padding: 12px;
+            box-shadow: 1px 1px 6px rgba(0,0,0,0.1);
+        }
+
+        .room-header {
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .room-status {
+            margin-bottom: 8px;
+        }
+
+        .room-actions form {
+            display: inline-block;
+            margin: 2px 0;
+        }
+
+        .room-actions button {
+            padding: 6px 10px;
+            font-size: 14px;
+            cursor: pointer;
+            border: none;
+            border-radius: 4px;
+        }
+
+        .checkin { background-color: #2ecc71; color: white; }
+        .checkout { background-color: #e67e22; color: white; }
+
+        #floor-buttons {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .floor-btn {
+            padding: 8px 16px;
+            font-size: 14px;
+            cursor: pointer;
+            border: none;
+            border-radius: 4px;
+            margin: 0 4px;
+        }
+
+        .floor-btn.active {
+            background-color: #2980b9;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+<header>
+    <h1>🏨 酒店後台管理系統</h1>
+</header>
+
+<div id="floor-buttons">
+    <button class="floor-btn active" onclick="filterFloor('all', this)">全部</button>
+    {% for floor in floors %}
+        <button class="floor-btn" onclick="filterFloor('{{ floor }}', this)">{{ floor }}F</button>
+    {% endfor %}
+</div>
+
+<div class="grid">
+    {% for room in rooms %}
+    <div class="room-card" data-floor="{{ room.room_number|slice:":1" }}">
+        <div class="room-header">
+            房號：{{ room.room_number }}（{{ room.room_type.name }}）
+        </div>
+        <div>樓層：{{ room.room_number|slice:":1" }}F</div>
+        <div class="promotion-info" style="color:#e67e22; margin-bottom:8px;">
+            {% if room.promotion %}
+                促銷：{{ room.promotion.name }}（{{ room.promotion.discount|floatformat:"0" }}折）
+            {% else %}
+                無促銷
+            {% endif %}
+        </div>
+        <div class="room-status">狀態：{{ room.status }}</div>
+        <div class="room-actions">
+            {% if room.status == "空房" or room.status == "已預約" %}
+            <form method="post" action="{% url 'checkin' room.room_number %}">
+                <button class="checkin" type="submit">Check In</button>
+            </form>
+            {% elif room.status == "使用中" %}
+            <form method="post" action="{% url 'checkout' room.room_number %}">
+                {% csrf_token %}
+                <button class="checkout" type="submit">Check Out</button>
+            </form>
+            {% else %}
+            <small>無操作</small>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<script>
+function filterFloor(floor, btn) {
+    document.querySelectorAll('.floor-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.room-card').forEach(card => {
+        if (floor === 'all' || card.getAttribute('data-floor') === floor) {
+            card.style.display = '';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+}
+</script>
+
+</body>
+</html>
