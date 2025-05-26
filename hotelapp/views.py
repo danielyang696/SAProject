@@ -80,30 +80,47 @@ def dashboard(request):
 def checkin(request, room_number):
     room = get_object_or_404(Room, room_number=room_number)
     if request.method == 'POST':
-        # 模擬一位客戶入住（簡化處理，實際可改為表單輸入）
+        national_id = request.POST.get('national_id')
+        name = request.POST.get('name')
+        phone = request.POST.get('phone')
+        guest_count = int(request.POST.get('guest_count'))
+        has_luggage = request.POST.get('has_luggage') == 'true'
+
         customer, created = Customer.objects.get_or_create(
-            national_id='DUMMY1234',
-            defaults={'name': '測試客戶', 'phone': '0912345678'}
+            national_id=national_id,
+            defaults={'name': name, 'phone': phone, 'has_luggage': has_luggage}
         )
+        if not created:
+            customer.name = name
+            customer.phone = phone
+            customer.has_luggage = has_luggage
+            customer.save()
+
         CheckIn.objects.create(
             customer=customer,
             room=room,
-            guest_count=1,
+            guest_count=guest_count,
             checkin_time=timezone.now(),
-            checkout_time=timezone.now()  # 可在退房時更新
+            checkout_time=None
         )
         room.status = '使用中'
         room.save()
         return redirect('dashboard')
+    return redirect('dashboard')
 
 @csrf_exempt
 def checkout(request, room_number):
     room = get_object_or_404(Room, room_number=room_number)
-    if request.method == 'POST':
-        checkin_record = CheckIn.objects.filter(room=room, checkout_time__lte=timezone.now()).last()
-        if checkin_record:
-            checkin_record.checkout_time = timezone.now()
-            checkin_record.save()
-        room.status = '空房'
+    # 找到這個房間目前的 checkin 資料
+    checkin = CheckIn.objects.filter(room=room).first()
+    if checkin:
+        customer = checkin.customer
+        # 更新房間狀態
+        room.status = "空房"
         room.save()
-        return redirect('dashboard')
+        # 刪除 checkin 資料
+        checkin.delete()
+        # 如果這個客戶沒有其他 checkin，則刪除客戶資料
+        if not CheckIn.objects.filter(customer=customer).exists():
+            customer.delete()
+    return redirect('dashboard')

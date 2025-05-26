@@ -81,6 +81,53 @@
             background-color: #2980b9;
             color: white;
         }
+
+        #checkin-modal {
+            display: none;
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+        }
+
+        #checkin-modal .modal-content {
+            background: #fff;
+            max-width: 350px;
+            margin: 80px auto;
+            padding: 24px;
+            border-radius: 8px;
+            position: relative;
+        }
+
+        #checkin-modal h3 {
+            margin-top: 0;
+        }
+
+        #checkin-modal label {
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        #checkin-modal input {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 16px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        #checkin-modal .modal-actions {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        #checkin-modal .modal-actions button {
+            flex: 1;
+            margin: 0 4px;
+        }
     </style>
 </head>
 <body>
@@ -112,9 +159,7 @@
         <div class="room-status">狀態：{{ room.status }}</div>
         <div class="room-actions">
             {% if room.status == "空房" or room.status == "已預約" %}
-            <form method="post" action="{% url 'checkin' room.room_number %}">
-                <button class="checkin" type="submit">Check In</button>
-            </form>
+            <button class="checkin" type="button" onclick="openCheckinModal('{{ room.room_number }}')">Check In</button>
             {% elif room.status == "使用中" %}
             <form method="post" action="{% url 'checkout' room.room_number %}">
                 {% csrf_token %}
@@ -128,6 +173,40 @@
     {% endfor %}
 </div>
 
+<div id="checkin-modal">
+    <div class="modal-content">
+        <h3>入住登記</h3>
+        <form id="checkin-form" method="post">
+            {% csrf_token %}
+            <input type="hidden" name="room_number" id="modal-room-number">
+            <div>
+                <label>身分證號：</label>
+                <input type="text" name="national_id" required>
+            </div>
+            <div>
+                <label>姓名：</label>
+                <input type="text" name="name" required>
+            </div>
+            <div>
+                <label>手機號碼：</label>
+                <input type="text" name="phone" required>
+            </div>
+            <div>
+                <label>人數：</label>
+                <input type="number" name="guest_count" min="1" value="1" required>
+            </div>
+            <div>
+                <label>寄放行李：</label>
+                <input type="checkbox" name="has_luggage" value="true">
+            </div>
+            <div class="modal-actions" style="margin-top:12px;">
+                <button type="submit" class="checkin">確定</button>
+                <button type="button" onclick="closeCheckinModal()">取消</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <script>
 function filterFloor(floor, btn) {
     document.querySelectorAll('.floor-btn').forEach(b => b.classList.remove('active'));
@@ -139,6 +218,16 @@ function filterFloor(floor, btn) {
             card.style.display = 'none';
         }
     });
+}
+
+function openCheckinModal(roomNumber) {
+    document.getElementById('checkin-modal').style.display = 'block';
+    document.getElementById('modal-room-number').value = roomNumber;
+    document.getElementById('checkin-form').action = '/checkin/' + roomNumber + '/';
+}
+
+function closeCheckinModal() {
+    document.getElementById('checkin-modal').style.display = 'none';
 }
 </script>
 

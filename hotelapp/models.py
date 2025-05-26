@@ -66,7 +66,7 @@ class CheckIn(models.Model): #入住資料
     room = models.ForeignKey(Room, on_delete=models.CASCADE)
     guest_count = models.PositiveIntegerField() #人數
     checkin_time = models.DateTimeField()
-    checkout_time = models.DateTimeField()
+    checkout_time = models.DateTimeField(null=True, blank=True)  # <--- 修改這一行
 
     class Meta:
         constraints = [
