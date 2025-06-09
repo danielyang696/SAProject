@@ -1,0 +1,1157 @@
+{% load static %}
+{% load custom_filters %}
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>酒店後台管理系統</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #e67e22;
+            --success-color: #2ecc71;
+            --background-color: #f8f9fa;
+            --text-color: #2c3e50;
+            --border-color: #ddd;
+            --hover-color: #34495e;
+        }
+
+        body {
+            font-family: "Microsoft JhengHei", sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--background-color);
+            display: flex;
+            min-height: 100vh;
+            color: var(--text-color);
+        }
+        aside {
+            width: 220px;
+            background: var(--primary-color);
+            padding: 30px 0;
+            min-height: 100vh;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+        }
+
+        aside::before {
+            content: '🏨';
+            display: block;
+            font-size: 40px;
+            text-align: center;
+            margin-bottom: 20px;
+            color: white;
+        }
+
+        aside ul {
+            list-style: none;
+            padding: 0;
+            margin-top: 40px;
+        }
+
+        aside li {
+            margin: 8px 20px;
+        }
+
+        aside button {
+            width: 100%;
+            padding: 12px 15px;
+            border: none;
+            background: transparent;
+            color: rgba(255,255,255,0.8);
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            text-align: left;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+        }
+
+        aside button::before {
+            margin-right: 10px;
+            font-size: 18px;
+        }
+
+        aside button:hover {
+            background: rgba(255,255,255,0.1);
+            color: white;
+        }
+
+        aside button.active {
+            background: var(--secondary-color);
+            color: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        #nav-room::before { content: '🏠'; }
+        #nav-reserve::before { content: '📅'; }
+        #nav-promo::before { content: '🏷️'; }
+        main {
+            flex: 1;
+            padding: 0;
+        }
+        .content-section {
+            display: none;
+            padding: 20px;
+        }
+        .content-section.active {
+            display: block;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 40px;
+            font-weight: bold;
+            margin: 30px 0 40px 0;
+            letter-spacing: 2px;
+            color: #2c3e50;
+            text-shadow: 2px 2px 8px #e0e0e0;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 16px;
+            padding: 20px;
+        }
+
+        .room-card {
+            background-color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .room-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+        }
+
+        .room-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: var(--primary-color);
+        }
+
+        .room-card[data-status="使用中"]::before {
+            background: var(--success-color);
+        }
+
+        .room-card[data-status="已預約"]::before {
+            background: var(--secondary-color);
+        }
+
+        .room-header {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-bottom: 12px;
+            color: var(--primary-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* 房間狀態顏色區分 */
+        .room-status[data-status="空房"] {
+            background: #eafaf1;
+            color: #27ae60;
+            border: 1.5px solid #2ecc71;
+        }
+        .room-status[data-status="使用中"] {
+            background: #eaf3fa;
+            color: #2980b9;
+            border: 1.5px solid #3498db;
+        }
+        .room-status[data-status="已預約"] {
+            background: #fff4e6;
+            color: #e67e22;
+            border: 1.5px solid #e67e22;
+        }
+
+        .room-status {
+            margin: 15px 0;
+            padding: 8px 12px;
+            background: rgba(0,0,0,0.05);
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
+
+        .room-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        .room-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .room-actions form {
+            flex: 1;
+        }
+
+        .room-actions button {
+            width: 100%;
+            padding: 8px 15px;
+            font-size: 14px;
+            cursor: pointer;
+            border: none;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 500;
+        }
+
+        .room-actions button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .checkin { background-color: #2ecc71; color: white; }
+        .checkout { background-color: #e67e22; color: white; }
+
+        #floor-buttons {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .floor-btn {
+            padding: 8px 16px;
+            font-size: 14px;
+            cursor: pointer;
+            border: none;
+            border-radius: 4px;
+            margin: 0 4px;
+        }
+
+        .floor-btn.active {
+            background-color: #2980b9;
+            color: white;
+        }
+
+        #checkin-modal {
+            display: none;
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+        }
+
+        #checkin-modal .modal-content {
+            background: #fff;
+            max-width: 350px;
+            margin: 80px auto;
+            padding: 24px;
+            border-radius: 8px;
+            position: relative;
+        }
+
+        #checkin-modal h3 {
+            margin-top: 0;
+        }
+
+        #checkin-modal label {
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        #checkin-modal input {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 16px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        #checkin-modal .modal-actions {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        #checkin-modal .modal-actions button {
+            flex: 1;
+            margin: 0 4px;
+        }
+
+        /* 預約服務區塊樣式 */
+        #section-reserve {
+            background: linear-gradient(rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.7)),
+                        url('https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80');
+            background-size: cover;
+            background-position: center;
+            min-height: 100vh;
+            padding: 40px;
+            position: relative;
+        }
+
+        .reservation-form {
+            max-width: 500px;
+            margin: 20px auto;
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .reservation-form h2 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 28px;
+            font-weight: 700;
+        }
+
+        .reservation-form .form-group {
+            margin-bottom: 25px;
+            position: relative;
+        }
+
+        .reservation-form label {
+            display: block;
+            margin-bottom: 8px;
+            color: #34495e;
+            font-weight: 500;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .reservation-form input,
+        .reservation-form select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #eee;
+            border-radius: 8px;
+            font-size: 15px;
+            transition: all 0.3s ease;
+            background: #f8f9fa;
+        }
+
+        .reservation-form input:focus,
+        .reservation-form select:focus {
+            border-color: #3498db;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+
+        .reservation-form button[type="submit"] {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #e67e22, #d35400);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .reservation-form button[type="submit"]:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(230, 126, 34, 0.3);
+        }
+
+        /* 預約列表樣式 */
+        .reservation-list {
+            max-width: 900px;
+            margin: 40px auto;
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .reservation-list h2 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .reservation-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .reservation-table th {
+            background: #34495e;
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: 500;
+            font-size: 14px;
+            text-transform: uppercase;
+        }
+
+        .reservation-table td {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            color: #2c3e50;
+        }
+
+        .reservation-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        /* 促銷表單樣式 */
+        #section-promo {
+            background: linear-gradient(rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.7)),
+                        url('https://images.unsplash.com/photo-1618773928121-c32242e63f39?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80');
+            background-size: cover;
+            background-position: center;
+            min-height: 100vh;
+            padding: 40px;
+            position: relative;
+        }
+        
+        #section-promo::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.1);
+            pointer-events: none;
+        }
+
+        .promotion-form {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .promotion-form h2 {
+            color: #2c3e50;
+            margin-bottom: 25px;
+            text-align: center;
+            font-size: 24px;
+        }
+
+        .promotion-form .form-group {
+            margin-bottom: 20px;
+        }
+
+        .promotion-form label {
+            display: block;
+            margin-bottom: 8px;
+            color: #34495e;
+            font-weight: 500;
+        }
+
+        .promotion-form input, 
+        .promotion-form select,
+        .promotion-form textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+        }
+
+        .promotion-form input:focus {
+            border-color: #3498db;
+            outline: none;
+        }
+
+        .promotion-form button[type="submit"] {
+            width: 100%;
+            padding: 12px;
+            background-color: #e67e22;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .promotion-form button[type="submit"]:hover {
+            background-color: #d35400;
+        }
+
+        /* 取消預約的提示框樣式 */
+        #cancel-modal {
+            display: none;
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.2);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #cancel-modal .modal-content {
+            background: #fff;
+            padding: 30px 40px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px #0002;
+            text-align: center;
+        }
+
+        #cancel-modal h3 {
+            margin-top: 0;
+            margin-bottom: 20px;
+            color: #2c3e50;
+            font-size: 18px;
+            font-weight: 500;
+        }
+
+        #cancel-modal button {
+            padding: 8px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        #cancel-modal #confirm-cancel-btn {
+            background: #e74c3c;
+            color: #fff;
+            margin-right: 20px;
+        }
+
+        #cancel-modal #confirm-cancel-btn:hover {
+            background: #c0392b;
+        }
+
+        #cancel-modal #cancel-cancel-btn {
+            background: #bbb;
+            color: #fff;
+        }
+
+        #cancel-modal #cancel-cancel-btn:hover {
+            background: #999;
+        }
+    </style>
+</head>
+<body>
+<aside>
+    <ul>
+        <li><button id="nav-room" class="active" onclick="showSection('room')">操作房間</button></li>
+        <li><button id="nav-reserve" onclick="showSection('reserve')">預約服務</button></li>
+        <li><button id="nav-promo" onclick="showSection('promo')">建立促銷</button></li>
+    </ul>
+</aside>
+<main>
+    <!-- 消息顯示區（放在 main 最上方，所有分頁都會顯示） -->
+    {% if messages %}
+    <div class="messages" style="max-width: 500px; margin: 20px auto;">
+        {% for message in messages %}
+        <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %}" 
+             style="padding: 15px; margin-bottom: 15px; border-radius: 4px; 
+                    {% if message.tags == 'success' %}
+                    background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb;
+                    {% else %}
+                    background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb;
+                    {% endif %}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    <script>
+        // 3秒後自動隱藏所有提示訊息
+        setTimeout(function() {
+            document.querySelectorAll('.messages').forEach(function(el) {
+                el.style.display = 'none';
+            });
+        }, 3000);
+    </script>
+    {% endif %}
+
+    <!-- 操作房間區塊 -->
+    <div id="section-room" class="content-section active">
+        <h1>🏨 酒店後台管理系統</h1>
+        <div style="display: flex; gap: 24px; justify-content: center; flex-wrap: wrap; margin-top: 30px;">
+            <div class="room-status" data-status="空房">空房</div>
+            <div class="room-status" data-status="使用中">使用中</div>
+            <div class="room-status" data-status="已預約">已預約</div>
+        </div>
+
+        <div id="floor-buttons">
+            <button class="floor-btn active" onclick="filterFloor('all', this)">全部</button>
+            {% for floor in floors %}
+                <button class="floor-btn" onclick="filterFloor('{{ floor }}', this)">{{ floor }}F</button>
+            {% endfor %}
+        </div>
+
+        <div class="grid">
+            {% for room in rooms %}
+            <div class="room-card" data-floor="{{ room.room_number|slice:":1" }}" data-status="{{ room.status }}">
+                <div class="room-header">
+                    <span>{{ room.room_number }}</span>
+                    <span class="room-type">{{ room.room_type.name }}</span>
+                </div>
+                <div class="room-info">
+                    <div>
+                        <i class="fas fa-building"></i> {{ room.room_number|slice:":1" }}F
+                    </div>
+                    <div>
+                        <i class="fas fa-key"></i> {{ room.status }}
+                    </div>
+                </div>
+                <div class="promotion-info" {% if room.promotion %}style="color: var(--secondary-color);"{% endif %}>
+                    <i class="fas fa-tag"></i>
+                    {% if room.promotion %}
+                        {{ room.promotion.name }}（{{ room.promotion.discount|multiply:100|floatformat:"0" }}折）
+                    {% else %}
+                        無促銷活動
+                    {% endif %}
+                </div>
+                <div class="room-status" data-status="{{ room.status }}" style="font-size:1.1em; font-weight:bold; margin-top:10px;">
+                    <i class="fas fa-info-circle"></i> 當前狀態：<span style="font-size:1.15em;">{{ room.status }}</span>
+                </div>
+                <div class="room-actions">
+                    {% if room.status == "空房" or room.status == "已預約" %}
+                    <button class="checkin" type="button" onclick="openCheckinModal('{{ room.room_number }}')">
+                        <i class="fas fa-sign-in-alt"></i> Check In
+                    </button>
+                    {% elif room.status == "使用中" %}
+                    <form method="post" action="{% url 'checkout' room.room_number %}">
+                        {% csrf_token %}
+                        <button class="checkout" type="submit">
+                            <i class="fas fa-sign-out-alt"></i> Check Out
+                        </button>
+                    </form>
+                    {% else %}
+                    <small>無可用操作</small>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div id="checkin-modal">
+            <div class="modal-content">
+                <h3>入住登記</h3>
+                <form id="checkin-form" method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="room_number" id="modal-room-number">
+                    <div>
+                        <label>身分證號：</label>
+                        <input type="text" name="national_id" required>
+                    </div>
+                    <div>
+                        <label>姓名：</label>
+                        <input type="text" name="name" required>
+                    </div>
+                    <div>
+                        <label>手機號碼：</label>
+                        <input type="text" name="phone" required>
+                    </div>
+                    <div>
+                        <label>人數：</label>
+                        <input type="number" name="guest_count" min="1" value="1" required>
+                    </div>
+                    <div>
+                        <label>寄放行李：</label>
+                        <input type="checkbox" name="has_luggage" value="true">
+                    </div>
+                    <div class="modal-actions" style="margin-top:12px;">
+                        <button type="submit" class="checkin">確定</button>
+                        <button type="button" onclick="closeCheckinModal()">取消</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <!-- 預約服務區塊 -->
+    <div id="section-reserve" class="content-section">
+        <div class="reservation-form">
+            <h2>
+                <i class="fas fa-calendar-alt"></i> 
+                預約入住
+            </h2>
+            <form method="post" action="{% url 'add_reservation' %}">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label>身分證字號</label>
+                    <input type="text" name="national_id" required placeholder="請輸入身分證字號" pattern="[A-Z][12]\d{8}" title="請輸入正確的身分證格式">
+                </div>
+                <div class="form-group">
+                    <label>訂房人姓名</label>
+                    <input type="text" name="name" required placeholder="請輸入姓名">
+                </div>
+                <div class="form-group">
+                    <label>聯絡電話</label>
+                    <input type="tel" name="phone" required placeholder="請輸入手機號碼" pattern="09\d{8}" title="請輸入正確的手機號碼格式">
+                </div>
+                <div class="form-group">
+                    <label>預訂房型</label>
+                    <select name="room_number" required>
+                        <option value="">請選擇房型</option>
+                        {% for room in rooms %}
+                            {% if room.status == "空房" %}
+                                <option value="{{ room.room_number }}" data-max-guests="{% if room.room_type.name == '單人房' %}1{% elif room.room_type.name == '雙人房' %}2{% elif room.room_type.name == '家庭房' %}4{% elif room.room_type.name == '豪華房' %}3{% else %}4{% endif %}">
+                                    {{ room.room_type.name }} - {{ room.room_number }}號房
+                                    {% if room.promotion %}
+                                        ({{ room.promotion.name }})
+                                    {% endif %}
+                                </option>
+                            {% endif %}
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>入住人數</label>
+                    <input type="number" name="guest_count" min="1" required value="1">
+                    <small style="color: #7f8c8d;">提示：選擇房型後會顯示可容納人數</small>
+                </div>
+                <div class="form-group">
+                    <label>入住日期</label>
+                    <input type="date" name="checkin_date" required min="{{ today|date:'Y-m-d' }}" onchange="updateNights()">
+                </div>
+                <div class="form-group">
+                    <label>退房日期</label>
+                    <input type="date" name="checkout_date" required min="{{ today|date:'Y-m-d' }}" onchange="updateNights()">
+                </div>
+                <div class="form-group">
+                    <label>住宿天數</label>
+                    <input type="number" name="nights" min="1" required readonly>
+                </div>
+                <button type="submit">
+                    <i class="fas fa-check"></i> 確認預約
+                </button>
+            </form>
+        </div>
+
+        <div class="reservation-list">
+            <h2>
+                <i class="fas fa-list"></i> 
+                目前預約清單
+            </h2>
+            <table class="reservation-table">
+                <thead>
+                    <tr>
+                        <th>訂房資訊</th>
+                        <th>聯絡資訊</th>
+                        <th>入住期間</th>
+                        <th>住宿天數</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for r in reservations %}
+                    <tr class="reservation-row" data-id="{{ r.id }}">
+                        <td>
+                            <strong>{{ r.room.room_type.name }}</strong><br>
+                            <small style="color: #7f8c8d;">{{ r.room.room_number }}號房</small>
+                        </td>
+                        <td>
+                            {{ r.customer.name }}<br>
+                            <small style="color: #7f8c8d;">{{ r.customer.phone }}</small>
+                        </td>
+                        <td>
+                            {{ r.checkin_date|date:"Y/m/d" }} - {{ r.checkout_date|date:"Y/m/d" }}
+                        </td>
+                        <td style="text-align: center;">
+                            <span style="color: #e67e22; font-weight: bold;">{{ r.nights }}</span> 晚
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" style="text-align: center; padding: 30px; color: #7f8c8d;">
+                            <i class="fas fa-info-circle"></i> 目前沒有任何預約
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <!-- 建立促銷區塊 -->
+    <div id="section-promo" class="content-section">
+        <!-- 消息顯示區 -->
+        {% if messages %}
+        <div class="messages" style="max-width: 500px; margin: 20px auto;">
+            {% for message in messages %}
+            <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %}" 
+                 style="padding: 15px; margin-bottom: 15px; border-radius: 4px; 
+                        {% if message.tags == 'success' %}
+                        background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb;
+                        {% else %}
+                        background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb;
+                        {% endif %}">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        <div class="promotion-form">
+            <h2>🏷️ 建立促銷方案</h2>
+            <form method="post" action="{% url 'add_promotion' %}" onsubmit="return validatePromotionForm()">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="promo-name">促銷名稱</label>
+                    <input type="text" id="promo-name" name="name" required 
+                           style="width: 100%; padding: 10px;" 
+                           placeholder="請輸入促銷名稱">
+                </div>
+                <div class="form-group">
+                    <label for="promo-code">促銷代碼</label>
+                    <input type="text" id="promo-code" name="code" required 
+                           style="width: 100%; padding: 10px;" 
+                           placeholder="請輸入促銷代碼 (如：SUMMER23)">
+                </div>
+                <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div class="form-group">
+                        <label>開始日期</label>
+                        <input type="date" name="start_date" style="width: 100%; padding: 8px;">
+                    </div>
+                    <div class="form-group">
+                        <label>結束日期</label>
+                        <input type="date" name="end_date" style="width: 100%; padding: 8px;">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>房型</label>
+                    <select name="room_type" required style="width: 100%; padding: 10px;" id="room-type-select">
+                        <option value="">請選擇房型</option>
+                        {% for room_type in room_types %}
+                            <option value="{{ room_type.code }}" data-type="{{ room_type.name }}">{{ room_type.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>折扣</label>
+                    <input type="number" name="discount" required style="width: 100%; padding: 10px;" 
+                           placeholder="請輸入折扣（例：0.85 代表85折）"
+                           min="0.1" max="0.99" step="0.01"
+                           id="discount-input">
+                    </select>
+                </div>
+                <button type="submit">建立促銷</button>
+            </form>
+            
+            <!-- 顯示現有促銷 -->
+            <div class="existing-promotions" style="margin-top: 30px;">
+                <h3 style="color: #2c3e50; text-align: center; margin-bottom: 15px;">
+                    <i class="fas fa-tags"></i> 現有促銷方案
+                </h3>
+                <div style="max-width: 800px; margin: 0 auto;">
+                    <div style="max-height: 400px; overflow-y: auto;">
+                        <table style="width: 100%; border-collapse: collapse; margin-top: 10px; background: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                        <thead>
+                            <tr style="background: #34495e; color: white;">
+                                <th style="padding: 12px; text-align: center;">促銷名稱</th>
+                                <th style="padding: 12px; text-align: center;">代碼</th>
+                                <th style="padding: 12px; text-align: center;">適用房型</th>
+                                <th style="padding: 12px; text-align: center;">折扣</th>
+                                <th style="padding: 12px; text-align: center;">有效期間</th>
+                                <th style="padding: 12px; text-align: center;">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for promo in promotions %}
+                            <tr style="border-bottom: 1px solid #eee; transition: background-color 0.3s;">
+                                <td style="padding: 12px; text-align: left;">
+                                    <div style="font-weight: 500;">{{ promo.name }}</div>
+                                </td>
+                                <td style="padding: 12px; text-align: center; font-family: monospace; color: #e67e22;">{{ promo.code }}</td>
+                                <td style="padding: 12px; text-align: center;">{{ promo.room_type.name }}</td>
+                                <td style="padding: 12px; text-align: center; color: #e67e22; font-weight: bold;">
+                                    {{ promo.discount|multiply:100|floatformat:0 }}折
+                                </td>
+                                <td style="padding: 12px; text-align: center;">
+                                    {% if promo.start_date and promo.end_date %}
+                                        {{ promo.start_date|date:"Y/m/d" }} - {{ promo.end_date|date:"Y/m/d" }}
+                                    {% else %}
+                                        無期限
+                                    {% endif %}
+                                </td>
+                                <td style="padding: 12px; text-align: center;">
+                                    <div style="display: flex; justify-content: center; gap: 10px; align-items: center;">
+                                        {% if promo.is_valid %}
+                                            <span style="background: #2ecc71; color: white; padding: 3px 8px; border-radius: 3px;">
+                                                <i class="fas fa-check-circle"></i> 使用中
+                                            </span>
+                                        {% else %}
+                                            <span style="background: #95a5a6; color: white; padding: 3px 8px; border-radius: 3px;">
+                                                <i class="fas fa-pause-circle"></i> 已過期
+                                            </span>
+                                        {% endif %}
+                                        <form method="post" action="{% url 'delete_promotion' promo.code %}" 
+                                              onsubmit="return confirm('確定要刪除此促銷方案嗎？此操作無法復原。');">
+                                            {% csrf_token %}
+                                            <button type="submit" style="background: #e74c3c; color: white; border: none; 
+                                                                       padding: 5px 10px; border-radius: 4px; cursor: pointer;
+                                                                       transition: all 0.2s ease;">
+                                                <i class="fas fa-trash-alt"></i> 刪除
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" style="text-align: center; padding: 20px; color: #7f8c8d;">
+                                    <i class="fas fa-info-circle"></i> 目前沒有任何促銷方案
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+<script>
+function filterFloor(floor, btn) {
+    document.querySelectorAll('.floor-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.room-card').forEach(card => {
+        if (floor === 'all' || card.getAttribute('data-floor') === floor) {
+            card.style.display = '';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+}
+
+function openCheckinModal(roomNumber) {
+    document.getElementById('checkin-modal').style.display = 'block';
+    document.getElementById('modal-room-number').value = roomNumber;
+    document.getElementById('checkin-form').action = '/checkin/' + roomNumber + '/';
+}
+
+function closeCheckinModal() {
+    document.getElementById('checkin-modal').style.display = 'none';
+}
+
+function showSection(section) {
+    // 切換左側按鈕
+    document.querySelectorAll('aside button').forEach(btn => btn.classList.remove('active'));
+    document.getElementById('nav-' + section).classList.add('active');
+    // 切換內容區塊
+    document.querySelectorAll('.content-section').forEach(sec => sec.classList.remove('active'));
+    document.getElementById('section-' + section).classList.add('active');
+}
+
+// 促銷表單驗證功能
+function validatePromotionForm() {
+    const form = document.querySelector('.promotion-form form');
+    const nameInput = form.querySelector('input[name="name"]');
+    const codeInput = form.querySelector('input[name="code"]');
+    const discountInput = form.querySelector('input[name="discount"]');
+    const roomTypeSelect = form.querySelector('select[name="room_type"]');
+    const startDateInput = form.querySelector('input[name="start_date"]');
+    const endDateInput = form.querySelector('input[name="end_date"]');
+    
+    console.log('表單元素:', {
+        form: form,
+        nameInput: nameInput,
+        nameValue: nameInput ? nameInput.value : 'input未找到'
+    });
+    
+    if (!nameInput || !nameInput.value || !nameInput.value.trim()) {
+        alert('請輸入促銷名稱');
+        if (nameInput) nameInput.focus();
+        return false;
+    }
+    
+    if (!codeInput.value.trim()) {
+        alert('請輸入促銷代碼');
+        return false;
+    }
+
+    // 檢查促銷代碼格式
+    if (!/^[A-Za-z0-9]+$/.test(codeInput.value.trim())) {
+        alert('促銷代碼只能包含字母和數字');
+        return false;
+    }
+    
+    const discount = parseFloat(discountInput.value);
+    if (isNaN(discount) || discount <= 0 || discount >= 1) {
+        alert('折扣必須是0到1之間的數字（例：0.85代表85折）');
+        return false;
+    }
+    
+    if (!roomTypeSelect.value) {
+        alert('請選擇房型');
+        return false;
+    }
+
+    // 如果有填寫開始日期，結束日期也必須填寫
+    if (startDateInput.value && !endDateInput.value) {
+        alert('如果設定開始日期，也必須設定結束日期');
+        return false;
+    }
+
+    // 如果有填寫結束日期，開始日期也必須填寫
+    if (endDateInput.value && !startDateInput.value) {
+        alert('如果設定結束日期，也必須設定開始日期');
+        return false;
+    }
+
+    // 如果都有填寫日期，檢查日期範圍
+    if (startDateInput.value && endDateInput.value) {
+        const startDate = new Date(startDateInput.value);
+        const endDate = new Date(endDateInput.value);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        if (startDate < today) {
+            alert('開始日期不能是過去的日期');
+            return false;
+        }
+
+        if (endDate < startDate) {
+            alert('結束日期不能早於開始日期');
+            return false;
+        }
+    }
+    
+    return true;
+}
+
+// 預約表單功能
+function updateNights() {
+    const checkinDate = document.querySelector('input[name="checkin_date"]').value;
+    const checkoutDate = document.querySelector('input[name="checkout_date"]').value;
+    const nightsInput = document.querySelector('input[name="nights"]');
+
+    if (checkinDate && checkoutDate) {
+        const start = new Date(checkinDate);
+        const end = new Date(checkoutDate);
+        const nights = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
+        
+        if (nights > 0) {
+            nightsInput.value = nights;
+        } else {
+            alert('退房日期必須在入住日期之後');
+            document.querySelector('input[name="checkout_date"]').value = '';
+            nightsInput.value = '';
+        }
+    }
+}
+
+// 設置最小日期
+document.addEventListener('DOMContentLoaded', function() {
+    const today = new Date().toISOString().split('T')[0];
+    document.querySelector('input[name="checkin_date"]').min = today;
+    document.querySelector('input[name="checkout_date"]').min = today;
+    
+    // 監聽房型選擇變化，更新人數限制
+    const roomSelect = document.querySelector('select[name="room_number"]');
+    const guestCountInput = document.querySelector('input[name="guest_count"]');
+    
+    roomSelect.addEventListener('change', function() {
+        const selectedOption = this.options[this.selectedIndex];
+        const maxGuests = selectedOption.dataset.maxGuests;
+        
+        if (maxGuests) {
+            guestCountInput.max = maxGuests;
+            if (parseInt(guestCountInput.value) > parseInt(maxGuests)) {
+                guestCountInput.value = maxGuests;
+            }
+            guestCountInput.nextElementSibling.textContent = `提示：此房型最多可容納 ${maxGuests} 人`;
+        }
+    });
+    
+    // 驗證入住人數
+    guestCountInput.addEventListener('change', function() {
+        const selectedOption = roomSelect.options[roomSelect.selectedIndex];
+        const maxGuests = selectedOption.dataset.maxGuests;
+        
+        if (maxGuests && parseInt(this.value) > parseInt(maxGuests)) {
+            alert(`此房型最多只能容納 ${maxGuests} 人`);
+            this.value = maxGuests;
+        }
+    });
+    
+    // 監聽房型選擇變化
+    roomSelect.addEventListener('change', function() {
+        const selectedOption = this.options[this.selectedIndex];
+        if (selectedOption.textContent.includes('促銷')) {
+            selectedOption.style.color = '#e67e22';
+        }
+    });
+});
+
+// 頁面載入時添加事件監聽器
+document.addEventListener('DOMContentLoaded', function() {
+    const nameSelect = document.querySelector('select[name="name"]');
+    if (nameSelect) {
+        nameSelect.addEventListener('change', function() {
+            updatePromotionFields(this);
+        });
+    }
+
+    // 取消預約的右鍵菜單事件
+    let cancelId = null;
+    document.querySelectorAll('.reservation-row').forEach(function(row) {
+        row.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+            cancelId = this.getAttribute('data-id');
+            document.getElementById('cancel-modal').style.display = 'flex';
+        });
+    });
+    document.getElementById('cancel-cancel-btn').onclick = function() {
+        document.getElementById('cancel-modal').style.display = 'none';
+        cancelId = null;
+    };
+    document.getElementById('confirm-cancel-btn').onclick = function() {
+        if (!cancelId) return;
+        fetch("{% url 'cancel_reservation' %}", {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: 'reservation_id=' + cancelId
+        })
+        .then(response => response.json())
+        .then(data => {
+            alert(data.msg);
+            if (data.success) location.reload();
+            else document.getElementById('cancel-modal').style.display = 'none';
+        });
+    };
+});
+</script>
+
+<!-- 取消預約的提示框 -->
+<div id="cancel-modal" style="display:none; position:fixed; left:0; top:0; width:100vw; height:100vh; background:rgba(0,0,0,0.2); z-index:9999; align-items:center; justify-content:center;">
+    <div class="modal-content">
+        <h3>確定要取消這筆預約嗎？</h3>
+        <button id="confirm-cancel-btn">確認</button>
+        <button id="cancel-cancel-btn">取消</button>
+    </div>
+</div>
+</body>
+</html>
