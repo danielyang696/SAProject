@@ -7,6 +7,9 @@ urlpatterns = [
     path('checkout/<str:room_number>/', views.checkout, name='checkout'),
     path('add_reservation/', views.add_reservation, name='add_reservation'),  # 新增這行
     path('add_promotion/', views.add_promotion, name='add_promotion'),        # 如果有促銷功能也加
+<<<<<<< HEAD
     path('delete_promotion/<str:code>/', views.delete_promotion, name='delete_promotion'),  # 新增刪除促銷
+=======
+>>>>>>> a86f24e7b57a4b773b0ed7604206baf960c7c735
     path('cancel_reservation/', views.cancel_reservation, name='cancel_reservation'),
 ]

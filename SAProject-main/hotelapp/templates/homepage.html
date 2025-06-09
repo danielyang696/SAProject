@@ -444,8 +444,12 @@
         }
 
         .promotion-form {
+<<<<<<< HEAD
             max-width: 800px;
             margin: 0 auto;
+=======
+            max-width: 500px;
+>>>>>>> a86f24e7b57a4b773b0ed7604206baf960c7c735
             background: rgba(255, 255, 255, 0.95);
             padding: 30px;
             border-radius: 10px;
@@ -470,6 +474,7 @@
             font-weight: 500;
         }
 
+<<<<<<< HEAD
         .promotion-form input, 
         .promotion-form select,
         .promotion-form textarea {
@@ -478,6 +483,14 @@
             border: 1px solid #ddd;
             border-radius: 4px;
             font-size: 14px;
+=======
+        .promotion-form input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+>>>>>>> a86f24e7b57a4b773b0ed7604206baf960c7c735
             transition: border-color 0.3s ease;
         }
 
@@ -628,7 +641,11 @@
                 <div class="promotion-info" {% if room.promotion %}style="color: var(--secondary-color);"{% endif %}>
                     <i class="fas fa-tag"></i>
                     {% if room.promotion %}
+<<<<<<< HEAD
                         {{ room.promotion.name }}（{{ room.promotion.discount|multiply:100|floatformat:"0" }}折）
+=======
+                        {{ room.promotion.name }}（{{ room.promotion.discount|floatformat:"0" }}折）
+>>>>>>> a86f24e7b57a4b773b0ed7604206baf960c7c735
                     {% else %}
                         無促銷活動
                     {% endif %}
@@ -813,6 +830,7 @@
         {% endif %}
         <div class="promotion-form">
             <h2>🏷️ 建立促銷方案</h2>
+<<<<<<< HEAD
             <form method="post" action="{% url 'add_promotion' %}" onsubmit="return validatePromotionForm()">
                 {% csrf_token %}
                 <div class="form-group">
@@ -836,6 +854,31 @@
                         <label>結束日期</label>
                         <input type="date" name="end_date" style="width: 100%; padding: 8px;">
                     </div>
+=======
+            <form method="post" action="{% url 'add_promotion' %}">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label>促銷名稱</label>
+                    <select name="name" required style="width: 100%; padding: 10px;">
+                        <option value="">請選擇促銷名稱</option>
+                        <option value="單人房九折">單人房九折</option>
+                        <option value="雙人房八折">雙人房八折</option>
+                        <option value="家庭房八五折">家庭房八五折</option>
+                        <option value="豪華房八八折">豪華房八八折</option>
+                        <option value="套房八二折">套房八二折</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>促銷代碼</label>
+                    <select name="code" required style="width: 100%; padding: 10px;">
+                        <option value="">請選擇促銷代碼</option>
+                        <option value="PROMO10">PROMO10 - 單人房九折</option>
+                        <option value="PROMO20">PROMO20 - 雙人房八折</option>
+                        <option value="PROMO15">PROMO15 - 家庭房八五折</option>
+                        <option value="PROMO12">PROMO12 - 豪華房八八折</option>
+                        <option value="PROMO18">PROMO18 - 套房八二折</option>
+                    </select>
+>>>>>>> a86f24e7b57a4b773b0ed7604206baf960c7c735
                 </div>
                 <div class="form-group">
                     <label>房型</label>
@@ -848,10 +891,20 @@
                 </div>
                 <div class="form-group">
                     <label>折扣</label>
+<<<<<<< HEAD
                     <input type="number" name="discount" required style="width: 100%; padding: 10px;" 
                            placeholder="請輸入折扣（例：0.85 代表85折）"
                            min="0.1" max="0.99" step="0.01"
                            id="discount-input">
+=======
+                    <select name="discount" required style="width: 100%; padding: 10px;" id="discount-select">
+                        <option value="">請選擇折扣</option>
+                        <option value="0.90">9折</option>
+                        <option value="0.88">88折</option>
+                        <option value="0.85">85折</option>
+                        <option value="0.82">82折</option>
+                        <option value="0.80">8折</option>
+>>>>>>> a86f24e7b57a4b773b0ed7604206baf960c7c735
                     </select>
                 </div>
                 <button type="submit">建立促銷</button>
@@ -862,6 +915,7 @@
                 <h3 style="color: #2c3e50; text-align: center; margin-bottom: 15px;">
                     <i class="fas fa-tags"></i> 現有促銷方案
                 </h3>
+<<<<<<< HEAD
                 <div style="max-width: 800px; margin: 0 auto;">
                     <div style="max-height: 400px; overflow-y: auto;">
                         <table style="width: 100%; border-collapse: collapse; margin-top: 10px; background: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
@@ -873,11 +927,23 @@
                                 <th style="padding: 12px; text-align: center;">折扣</th>
                                 <th style="padding: 12px; text-align: center;">有效期間</th>
                                 <th style="padding: 12px; text-align: center;">操作</th>
+=======
+                <div style="max-height: 300px; overflow-y: auto;">
+                    <table style="width: 100%; border-collapse: collapse; margin-top: 10px; background: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                        <thead>
+                            <tr style="background: #34495e; color: white;">
+                                <th style="padding: 12px;">促銷名稱</th>
+                                <th style="padding: 12px;">代碼</th>
+                                <th style="padding: 12px;">適用房型</th>
+                                <th style="padding: 12px;">折扣</th>
+                                <th style="padding: 12px;">狀態</th>
+>>>>>>> a86f24e7b57a4b773b0ed7604206baf960c7c735
                             </tr>
                         </thead>
                         <tbody>
                             {% for promo in promotions %}
                             <tr style="border-bottom: 1px solid #eee; transition: background-color 0.3s;">
+<<<<<<< HEAD
                                 <td style="padding: 12px; text-align: left;">
                                     <div style="font-weight: 500;">{{ promo.name }}</div>
                                 </td>
@@ -915,6 +981,25 @@
                                         </form>
                                     </div>
                                 </td>
+=======
+                                <td style="padding: 12px;">{{ promo.name }}</td>
+                                <td style="padding: 12px; font-family: monospace; color: #e67e22;">{{ promo.code }}</td>
+                                <td style="padding: 12px;">{{ promo.room_type.name }}</td>
+                                <td style="padding: 12px; color: #e67e22; font-weight: bold;">
+                                    {{ promo.discount|multiply:100|floatformat:0 }}折
+                                </td>
+                                <td style="padding: 12px;">
+                                    {% if promo.rooms.all %}
+                                    <span style="background: #2ecc71; color: white; padding: 3px 8px; border-radius: 3px;">
+                                        <i class="fas fa-check-circle"></i> 使用中
+                                    </span>
+                                    {% else %}
+                                    <span style="background: #95a5a6; color: white; padding: 3px 8px; border-radius: 3px;">
+                                        <i class="fas fa-pause-circle"></i> 未使用
+                                    </span>
+                                    {% endif %}
+                                </td>
+>>>>>>> a86f24e7b57a4b773b0ed7604206baf960c7c735
                             </tr>
                             {% empty %}
                             <tr>
@@ -962,6 +1047,7 @@ function showSection(section) {
     document.getElementById('section-' + section).classList.add('active');
 }
 
+<<<<<<< HEAD
 // 促銷表單驗證功能
 function validatePromotionForm() {
     const form = document.querySelector('.promotion-form form');
@@ -1037,6 +1123,53 @@ function validatePromotionForm() {
     }
     
     return true;
+=======
+// 促銷表單聯動功能
+const promotionData = {
+    '單人房九折': { code: 'PROMO10', roomType: '單人房', discount: '0.90' },
+    '雙人房八折': { code: 'PROMO20', roomType: '雙人房', discount: '0.80' },
+    '家庭房八五折': { code: 'PROMO15', roomType: '家庭房', discount: '0.85' },
+    '豪華房八八折': { code: 'PROMO12', roomType: '豪華房', discount: '0.88' },
+    '套房八二折': { code: 'PROMO18', roomType: '套房', discount: '0.82' }
+};
+
+function updatePromotionFields(nameSelect) {
+    const selectedName = nameSelect.value;
+    const codeSelect = document.querySelector('select[name="code"]');
+    const roomTypeSelect = document.getElementById('room-type-select');
+    const discountSelect = document.getElementById('discount-select');
+    
+    if (selectedName && promotionData[selectedName]) {
+        const data = promotionData[selectedName];
+        
+        // 更新促銷代碼
+        codeSelect.value = data.code;
+        
+        // 更新房型
+        const roomTypeOption = Array.from(roomTypeSelect.options)
+            .find(option => option.textContent === data.roomType);
+        if (roomTypeOption) {
+            roomTypeSelect.value = roomTypeOption.value;
+        }
+        
+        // 更新折扣
+        discountSelect.value = data.discount;
+        
+        // 禁用欄位
+        codeSelect.disabled = true;
+        roomTypeSelect.disabled = true;
+        discountSelect.disabled = true;
+    } else {
+        // 重設並啟用所有欄位
+        codeSelect.value = '';
+        roomTypeSelect.value = '';
+        discountSelect.value = '';
+        
+        codeSelect.disabled = false;
+        roomTypeSelect.disabled = false;
+        discountSelect.disabled = false;
+    }
+>>>>>>> a86f24e7b57a4b773b0ed7604206baf960c7c735
 }
 
 // 預約表單功能
